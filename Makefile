@@ -27,7 +27,7 @@ git_ignore: ## Creates a tailored .gitignore file
 	swagger-codegen-cli.jar'>.gitignore
 
 swagger_codegen_cli_fetch: ## Get the Swagger Codegen CLI
-	wget https://repo1.maven.org/maven2/io/swagger/codegen/v3/swagger-codegen-cli/3.0.36/swagger-codegen-cli-3.0.36.jar -O swagger-codegen-cli.jar
+	wget https://repo1.maven.org/maven2/io/swagger/codegen/v3/swagger-codegen-cli/3.0.51/swagger-codegen-cli-3.0.51.jar -O swagger-codegen-cli.jar
 	java -jar swagger-codegen-cli.jar --help
 
 swagger_codegen_generators_fetch: ## Get a fork of Swagger-Code-Generators containing Pact templates
@@ -38,24 +38,30 @@ swagger_codegen_generators_build: ## Build the swagger-codegen-generators projec
 
 swagger_codegen_generators_generate: ## Generate a templated project from a given OpenAPI specification
 	echo '{ "npmName": "typescript-fetch-pact-consumer" }'>codegen.config.json
-	java -cp swagger-codegen-cli.jar:swagger-codegen-generators/target/swagger-codegen-generators-1.0.36-SNAPSHOT.jar io.swagger.codegen.v3.Codegen  \
+	java -cp swagger-codegen-cli.jar:swagger-codegen-generators/target/swagger-codegen-generators-1.0.46-SNAPSHOT.jar io.swagger.codegen.v3.Codegen  \
      -i ${OAS_FILE} -l typescript-fetch-pact -c codegen.config.json -o typescript-fetch-pact-consumer
 
 consumer_project_install: ## Install the templated project
 	cd typescript-fetch-pact-consumer && npm i
 
-provider_project_test: ## Test the templated project with Pact
+consumer_project_test: ## Test the templated project with Pact
 	cd typescript-fetch-pact-consumer && npm test
 
+consumer_project_verify_pact_openapi: ## Verify the templated project with Pact and OpenAPI
+	npx @pactflow/swagger-mock-validator openapi/openapi.yaml typescript-fetch-pact-consumer/pacts/DefaultApi-consumer-DefaultApi.json
+
+do_openapi2soapui: openapi2soapui_fetch openapi2soapui_build openapi2soapui_generate_project
+
 openapi2soapui_fetch: ## Downloads the apiaddicts/openapi2soapui repository
-	git clone https://github.com/apiaddicts/openapi2soapui
+	git clone https://github.com/you54f/openapi2soapui
+# git clone https://github.com/apiaddicts/openapi2soapui
 
 openapi2soapui_docker_fetch: ## Downloads the you54f/openapi2soapui Docker image
 	docker pull you54f/openapi2soapui
 	
 openapi2soapui_build: ## Builds the apiaddicts/openapi2soapui repository
 	cd openapi2soapui &&\
-	mvn clean package -Pjar &&\
+	java -version && mvn clean package -Pjar &&\
 	docker-compose up -d
 	
 openapi2soapui_run: ## Runs the apiaddicts/openapi2soapui repository
@@ -65,12 +71,12 @@ openapi2soapui_run: ## Runs the apiaddicts/openapi2soapui repository
 openapi2soapui_docker_run:  ## Runs the you54f/openapi2soapui Docker image
 	docker run -d -p 8080:8080 you54f/openapi2soapui
 
-openapi2soapui_generate_stdout: ## Convert OpenAPI to SoapUI to stdout
+openapi2soapui_generate: ## Convert OpenAPI to SoapUI and store in a project file
 	curl --location --request POST 'http://localhost:8080/api-openapi-to-soapui/v1/soap-ui-projects' \
 	--header 'Content-Type: application/json' \
-	--data-raw '{ "apiName": "Users", "oAuth2Profiles": [], "openApiSpec": "$(shell cat ${OAS_FILE} | base64 -w0 2> /dev/null|| cat ${OAS_FILE} | base64)", "testCaseNames": [ "Success" ], "headers": [] }'
+	--data-raw '{ "apiName": "Users", "oAuth2Profiles": [], "openApiSpec": "$(shell cat ${OAS_FILE} | base64 -w0 2> /dev/null|| cat ${OAS_FILE} | base64)", "testCaseNames": [ "Success" ], "headers": [] }' > project/openapi2soapui.xml
 openapi2soapui_generate_project:  ## Convert OpenAPI to SoapUI to project/openapi2soapui.xml
-	mkdir -p project && make openapi2soapui_generate_stdout > project/openapi2soapui.xml && echo 'OK'
+	mkdir -p project && make openapi2soapui_generate && echo 'OK'
 git_init: git_ignore ## Inits a git project, from the given folder
 	git init && git add . && git commit -m 'first commit'
 
@@ -97,13 +103,18 @@ swagger_ui_docker_run:  ## Runs the swaggerapi/swagger-ui Docker image
 	docker run -d -p 8083:8080 -e SWAGGER_JSON=/${OAS_FILE} -v ${PWD}/openapi:/openapi swaggerapi/swagger-ui
 
 provider_project_fetch: ## Downloads the pactflow/example-bi-directional-provider-soapui repository
-	git clone https://github.com/pactflow/example-bi-directional-provider-soapui
+	git clone https://github.com/pactflow/example-bi-directional-provider-soapui &&\
+	cd example-bi-directional-provider-soapui &&\
+	git checkout pact_provider_verification
 
 provider_project_install: ## Installs the pactflow/example-bi-directional-provider-soapui project
 	cd example-bi-directional-provider-soapui && npm i
 
 provider_project_run:  ## Runs the provider project
 	cd example-bi-directional-provider-soapui && npm run start
+
+provider_project_pact_verification: ## Verifies the provider project with Pact
+	cd example-bi-directional-provider-soapui && PACT_URL=../typescript-fetch-pact-consumer/pacts npm run test:pact:consumer_change
 
 provider_start_test_stop: ## Runs the provider project and tests with SoapUI
 	cd example-bi-directional-provider-soapui && { npm run start & PID=$$!;} && cd .. && \
@@ -114,13 +125,32 @@ soapui_run: ## Runs a SoapUI test suite in Docker
 	case "$(shell uname -sm)" in \
 	Darwin*|Windows) str='$(ENDPOINT)'; ENDPOINT=$${str/localhost/host.docker.internal};; \
 	esac; \
-	echo $${ENDPOINT:-ENDPOINT} && \
+	echo "$$ENDPOINT" && \
 	docker run --rm --network="host" \
 		-v="${PWD}"/"${PROJECT_FOLDER}":/project \
 		-e ENDPOINT="$$ENDPOINT" \
 		-e PROJECT_FILE="${PROJECT_FILE}" \
 		-e COMMAND_LINE="'-e"$$ENDPOINT"' '-f/%project%/reports' -r -j /project/"${PROJECT_FILE}"" \
 		smartbear/soapuios-testrunner:latest
+
+# https://github.com/stoplightio/prism
+# https://stoplight.io/open-source/prism
+provider_mock_prism: ## Runs a mock server with Prism, generated from the OpenAPI specification
+	docker run --init --rm -v ${PWD}/openapi:/openapi -p 3001:4010 stoplight/prism:4 mock -h 0.0.0.0 "/${OAS_FILE}"
+
+# https://github.com/stoplightio/spectral
+# https://stoplight.io/open-source/spectral
+
+create_spectral_default_ruleset:
+	echo 'extends: ["spectral:oas", "spectral:asyncapi"]' > openapi/.spectral.yaml
+
+openapi_lint_spectral: ## Lints the OpenAPI specification with Spectral
+	docker run --rm -it -v ${PWD}/openapi:/openapi stoplight/spectral lint --ruleset "/openapi/.spectral.yaml" "/${OAS_FILE}"
+
+# https://github.com/stoplightio/elements
+# https://stoplight.io/open-source/elements
+openapi_docs_elements: ## Generates documentation from the OpenAPI specification with Stoplight Elements
+	open elements.html
 
 .PHONY: help
 
