@@ -1,1 +1,8 @@
-*.jar
+swagger-codegen-generators 
+codegen.config.json 
+typescript-fetch-pact-consumer 
+openapi2soapui 
+openapi.yaml 
+project/reports/*.xml 
+project/reports/*.txt 
+swagger-codegen-cli.jar

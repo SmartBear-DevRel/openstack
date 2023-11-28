@@ -24,6 +24,9 @@ git_ignore: ## Creates a tailored .gitignore file
 	typescript-fetch-pact-consumer \n\
 	openapi2soapui \n\
 	openapi.yaml \n\
+	project/reports/*.xml \n\
+	project/reports/*.txt \n\
+	*.jar \n\
 	swagger-codegen-cli.jar'>.gitignore
 
 swagger_codegen_cli_fetch: ## Get the Swagger Codegen CLI
