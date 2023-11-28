@@ -155,6 +155,9 @@ openapi_lint_spectral: ## Lints the OpenAPI specification with Spectral
 openapi_docs_elements: ## Generates documentation from the OpenAPI specification with Stoplight Elements
 	open elements.html
 
+clean:
+	rm -rf openapi openapi2soapui swagger-codegen-generators typescript-fetch-pact-consumer project example-bi-directional-provider-soapui codegen.config.json
+
 .PHONY: help
 
 help:
