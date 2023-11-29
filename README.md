@@ -1,97 +1,132 @@
+
 # SmartBear OpenStack
 
-## Day 1
+## Pre-Reqs
 
-- Create an API definition with OpenAPI
-  - [Swagger Editor](https://editor.swagger.io/)
+1. Run `make setup` to fetch a demo OpenAPI document and add a `.gitignore` file to your repository. If you are authoring an OpenAPI document from scratch you can ignore this step, but be sure to update the `OAS_FILE` path in the `Makefile` and update any other refs.
 
-1. Visit [Swagger Editor](https://editor.swagger.io/)
-   1. You'll notice the OpenAPI definition editor on the left
-   2. The UI renderer on the right hand side.
-2. Make some changes to the API, and note these are reflected in our UI on the right hand side.
-3. Save your API definition
-   1. File -> Save as YAML
-   2. File -> Convert and save as JSON
-4. You can also generate client and server stub code from your API definition, we will cover this later.
-5. Lets make a folder to hold our OpenAPI definitions.
+## Design
 
-```sh
-mkdir -p openapi
-```
+### Tools Used
 
-6. Now let's populate it with some API's
+1. Swagger Editor
+2. Swagger Editor Next
+3. Stoplight Spectral
 
-The [Swagger-Codegen](https://github.com/swagger-api/swagger-codegen) project, provides [online generators](https://github.com/swagger-api/swagger-codegen?tab=readme-ov-file#online-generators), we can use this to get a copy of the Swagger Petstore example API definition, as shown in the swagger-editor.
+### Steps
 
-```sh
-curl -Ls https://generator3.swagger.io/openapi.json -o openapi/petstore.json
-```
+1. Design an OpenAPI document online with Swagger Editor
+   1. https://editor.swagger.io/
+2. Check out the new Swagger Editor which supports OpenAPI & AsyncAPI
+   1. https://editor-next.swagger.io/
+3. Run Swagger Editor Locally
+   1. https://swagger.io/docs/open-source-tools/swagger-editor/
+   2. `make do_swagger_editor`
+   3. `open http://localhost:8082`
+4. Run Swagger Editor-Next Locally
+   1. https://swagger.io/docs/open-source-tools/swagger-editor-next/
+   2. `make do_swagger_editor_next`
+   3. `open http://localhost:8081`
+5. Lint the OpenAPI document with Stoplight Spectral
+   1. `make create_spectral_default_ruleset`
+   2. `make openapi_lint_spectral`
 
-We have also prepared a PactFlow Product API definition, which you can pull in to this project, from an external location
+## Documentation
 
-```sh
-curl -Ls https://raw.githubusercontent.com/YOU54F/swaggerhub-pactflow/main/oas/swagger.yaml -o openapi/products.yaml
-```
+### Tools Used
 
-7. Swagger Editor provides support for OpenAPI documents, traditionally used for RESTful, or REST-like services, that communicate over HTTP. Swagger-Editor next provides an enhanced editing and UI experience, and support for AsyncAPI and the event-driven messaging systems it can document.
-   1. Click `Try our new editor` to see [Swagger-Editor Next](https://editor-next.swagger.io/)
-   2. By default, it loads a Kafka AsyncAPI Streetlights example.
-   3. You can select File -> Load Example -> OpenAPI 3.0 PetStore to see an OpenAPI document in the new editor.
+1. Swagger UI
+2. Stoplight Element
 
-That's it for day 1, join us tomorrow where we will how we can run Swagger UI and Swagger Editor (and Swagger Editor Next) on our local machine.
+### Steps
 
-## Day 2
+1. Swagger UI
+   1. `make do_swagger_ui`
+   2. `open http://localhost:8083`
+2. Stoplight Elements
+   1. `make openapi_docs_elements`
 
-- Load your definition locally
-  - Swagger UI
-  - Swagger Editor
-  - Swagger Editor Next
-  - Stoplight Elements
+## Mocking
 
-## Day 3
+### Tools Used
 
-- Stoplight Spectral
-  - Validate your OpenAPI Document
-- Stoplight Prism
-  - Create a mock server from your OpenAPI document to serve to potential consumers
+1. Stoplight Prism
 
-## Day 4
+### Steps
 
-- Swagger CodeGen
-  - Generate a server implementation
+1. Stoplight Prism
+   1. `make provider_mock_prism`
+   2. `curl localhost:3001/products`
 
-## Day 5
+## Functional Testing - Provider Mock Implementation
 
-- SoapUI
-  - Test Server implementation against OpenAPI with SoapUI
+Create functional tests for SoapUI, driven from the OpenAPI Specification.
 
-## Day 6
+Test these against our mock provider (provided by Prism), in order to verify the test suite / mock implementation, and prepare for verifying our provider codebase once implemented.
 
-- Swagger CodeGen
-  - Generate a client implementation
+### Tools Used
 
-## Day 7
+1. SoapUI
+   1. OpenApi2SoapUI
+2. Stoplight Prism
 
-- Pact
-  - Generate Consumer contract
-- Swagger-Mock-Validator
-  - Validate Consumer contract against OpenAPI Definition
+### Steps
 
-## Day 8
+1. SoapUI
+   1. `make openapi2soapui_docker_fetch`
+   2. `make openapi2soapui_build`
+   3. `make openapi2soapui_generate_project`
+   4. `make provider_mock_prism` - Run our Mock Provider
+   5. `make soapui_run`
 
-- Swagger CodeGen
-  - Update code-gen to generate Pact boilerplate to template
-  - Utilise custom template to generate client with Pact tests
+## Client Code Generation & Contract Testing
 
-## Day 9
+### Tools Used
 
-- Pact
-  - Setup a Pact Broker
-  - Publish Pact Contracts
+1. Swagger CodeGen
+2. Pact
+3. Swagger-Mock-Validator
 
-## Day 10
+### Steps
 
-- Pact
-  - Provider validates consumer contracts
+1. Fetch and build the Swagger CodeGen Project
+   1. `make swagger_codegen_cli_fetch`
+   2. `make swagger_codegen_generators_fetch`
+   3. `make swagger_codegen_generators_build`
+2. Generate the consumer template
+   1. `make swagger_codegen_generators_generate`
+   2. `make consumer_project_install`
+3. Test the consumer project utilising Pact
+   1. `make consumer_project_test`
+4. Verify Pact's generated Consumer contracts against the OpenAPI
+   1. `make consumer_project_verify_pact_openapi`
 
-## Day ?
+## Functional Testing - Provider Implementation
+
+### Tools Used
+
+1. SoapUI
+
+### Steps
+
+1. Download a pre-prepared Provider implementation and try it out
+   1. `make provider_project_fetch`
+   2. `make provider_project_install`
+   3. `make provider_project_run`
+   4. `curl localhost:3001/products`
+2. With the provider still running, run our SoapUI tests
+   1. `make provider_project_run` in terminal 1
+   2. `make soapui_run` in terminal 2
+3. Start the server and test, all in one, omitting the need for two terminals
+   1. `make provider_start_test_stop`
+
+## Contract Testing - Provider Implementation
+
+### Tools Used
+
+1. Pact
+
+### Steps
+
+1. Use Pact to replay the consumers contract expectations, against the provider implementation.
+   1. `make provider_project_pact_verification`
