@@ -1,4 +1,3 @@
-
 # SmartBear OpenStack
 
 ## Pre-Reqs
@@ -6,6 +5,12 @@
 1. Run `make setup` to fetch a demo OpenAPI document and add a `.gitignore` file to your repository. If you are authoring an OpenAPI document from scratch you can ignore this step, but be sure to update the `OAS_FILE` path in the `Makefile` and update any other refs.
 
 ## Design
+
+## Overview
+
+In this step, we will showcase tools used to author, and standardize/govern an API description to ensure it adhere to the OpenAPI Specification and potentially any custom rules you want to enforce.
+
+We will use a free hosted editor, and show how we can run these locally on our machine.
 
 ### Tools Used
 
@@ -17,16 +22,18 @@
 
 1. Design an OpenAPI document online with Swagger Editor
    1. https://editor.swagger.io/
+   2. Load our sample OpenAPI document from `openapi/openapi.yaml`
+      1. File -> Import file
 2. Check out the new Swagger Editor which supports OpenAPI & AsyncAPI
    1. https://editor-next.swagger.io/
 3. Run Swagger Editor Locally
    1. https://swagger.io/docs/open-source-tools/swagger-editor/
    2. `make do_swagger_editor`
-   3. `open http://localhost:8082`
+   3. `open http://localhost:8081`
 4. Run Swagger Editor-Next Locally
    1. https://swagger.io/docs/open-source-tools/swagger-editor-next/
    2. `make do_swagger_editor_next`
-   3. `open http://localhost:8081`
+   3. `open http://localhost:8082`
 5. Lint the OpenAPI document with Stoplight Spectral
    1. `make create_spectral_default_ruleset`
    2. `make openapi_lint_spectral`
