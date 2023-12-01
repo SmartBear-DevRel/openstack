@@ -184,15 +184,20 @@ openapi2soapui_generate_project:  ## Convert OpenAPI to SoapUI to project/openap
 
 soapui_run: ## Runs a SoapUI test suite in Docker
 	case "$(shell uname -sm)" in \
-	Darwin*|Windows) str='$(ENDPOINT)'; ENDPOINT=$${str/localhost/host.docker.internal};; \
-	esac; \
-	echo "$$ENDPOINT" && \
-	docker run --rm --name soap-ui --network="host" \
+	Darwin*|Windows) str='$(ENDPOINT)'; ENDPOINT=$${str/localhost/host.docker.internal} && \
+		docker run --rm --name soap-ui --network="host" \
 		-v="${PWD}"/"${PROJECT_FOLDER}":/project \
 		-e ENDPOINT="$$ENDPOINT" \
 		-e PROJECT_FILE="${PROJECT_FILE}" \
-		-e COMMAND_LINE="'-e"$$ENDPOINT"' '-f/%project%/reports' -r -j /project/"${PROJECT_FILE}"" \
-		smartbear/soapuios-testrunner:latest
+		-e COMMAND_LINE="'-e$$ENDPOINT' '-f/%project%/reports' -r -j /project/"${PROJECT_FILE}"" \
+		smartbear/soapuios-testrunner:latest;; \
+	*) 	docker run --rm --name soap-ui --network="host" \
+		-v="${PWD}"/"${PROJECT_FOLDER}":/project \
+		-e ENDPOINT="$$ENDPOINT" \
+		-e PROJECT_FILE="${PROJECT_FILE}" \
+		-e COMMAND_LINE="'-e${ENDPOINT}' '-f/%project%/reports' -r -j /project/"${PROJECT_FILE}"" \
+		smartbear/soapuios-testrunner:latest;; \
+	esac;
 
 ################################
 ### Provider - SoapUI / Pact ###

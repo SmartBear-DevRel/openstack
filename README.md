@@ -80,7 +80,7 @@ Test these against our mock provider (provided by Prism), in order to verify the
 ### Steps
 
 1. SoapUI
-   1. `make openapi2soapui_docker_fetch`
+   1. `make openapi2soapui_fetch`
    2. `make openapi2soapui_build`
    3. `make openapi2soapui_generate_project`
    4. `make provider_mock_prism` - Run our Mock Provider
@@ -136,4 +136,5 @@ Test these against our mock provider (provided by Prism), in order to verify the
 ### Steps
 
 1. Use Pact to replay the consumers contract expectations, against the provider implementation.
-   1. `make provider_project_pact_verification`
+   1. `make docker_stop_all` - may be required as there is a port conflict otherwise with the provider port used in the test
+   2. `make provider_project_pact_verification`
