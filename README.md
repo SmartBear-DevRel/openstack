@@ -123,7 +123,7 @@ The next Swagger Editor, which we will refer to throughout this tutorial as swag
 
 This ground-up rewrite builds upon our multi-specification core, [Swagger ApiDOM](http://github.com/swagger-api/apidom), which provides a single, unifying structure for describing APIs across API description language and serialization formats. We'll share more information and context on Swagger ApiDOM soon, so stay tuned!
 
-You can read more about the next Swagger Editor [here] in a blog post by fellow SmartBear Developer Relations member Frank Kilcommins, who is our resident API technical evangelist.
+You can read more about the next Swagger Editor [here](https://swagger.io/blog/introducing-the-new-swagger-editor/) in a blog post by fellow SmartBear Developer Relations member Frank Kilcommins, who is our resident API technical evangelist.
 
 ## Contributing
 
