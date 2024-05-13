@@ -12,6 +12,7 @@ jobs:
           node-version: '20'
       - run: make setup
       - run: make do_openapi_lint || true
+      - run: OAS_FILE=openapi-fixed.yaml make do_openapi_lint
       - run: make provider_mock_prism &
       - run: sleep 15 && make request
       - run: make do_openapi2soapui

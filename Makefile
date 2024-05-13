@@ -2,7 +2,7 @@
 ### Variables ###
 ##############################
 
-OAS_FILE=openapi/openapi.yaml
+OAS_FILE?=openapi/openapi.yaml
 ENDPOINT?=http://localhost:3001
 HEALTHCHECK_PATH?=http://localhost:3001/products
 PROJECT_FOLDER?=project
