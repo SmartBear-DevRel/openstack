@@ -1,0 +1,24 @@
+name: ci
+
+on:
+  push:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: make setup
+      - run: make do_openapi_lint || true
+      - run: make provider_mock_prism &
+      - run: sleep 15 && make request
+      - run: make do_openapi2soapui
+      - run: make do_soapui_test
+      - run: docker stop prism
+      - run: make do_generate_consumer
+      - run: make do_consumer_test
+      - run: make do_consumer_pact_verify_openapi
+      - run: make do_generate_provider
+      - run: make do_provider_test
