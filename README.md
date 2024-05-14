@@ -246,7 +246,7 @@ We saw one in use in the Swagger Editor, on the right-hand side, and we will int
 [Swagger UI](https://swagger.io/tools/swagger-ui/) allows anyone — be it your development team or your end consumers — to visualize and interact with the API’s resources without having any of the implementation logic in place. It’s automatically generated from your OpenAPI (formerly known as Swagger) Specification, with the visual documentation making it easy for back end implementation and client side consumption.
 
 - Dependency Free
-  - Dependency FreeThe UI works in any development environment, be it locally or in the web
+  - The UI works in any development environment, be it locally or in the web
 - Human Friendly
   - Allow end developers to effortlessly interact and try out every single operation your API exposes for easy consumption
 - Easy to Navigate
